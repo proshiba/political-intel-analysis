@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 from urllib.parse import urlparse
-
-import csv
 
 from .models import SourceSite
 
