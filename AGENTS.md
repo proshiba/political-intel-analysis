@@ -1,7 +1,7 @@
 # Political Intel Analysis Agent Instructions
 
 ## Mission
-Build tools that collect, normalize, and analyze open-source political and legal information from spreadsheet-provided URLs.
+Build tools that collect, normalize, and analyze open-source political and legal information from file-configured URLs.
 
 ## Operating Principles
 - Respect robots.txt and site terms of use.
@@ -10,7 +10,7 @@ Build tools that collect, normalize, and analyze open-source political and legal
 - Treat automated analysis as analyst support, not final legal advice.
 
 ## Data Handling
-- Do not commit secrets, API keys, private spreadsheets, or large raw crawl dumps.
+- Do not commit secrets, API keys, private source lists, or large raw crawl dumps.
 - Store sample inputs under `data/` only when they are synthetic or public examples.
 - Outputs should be reproducible JSON/JSONL/Markdown files.
 

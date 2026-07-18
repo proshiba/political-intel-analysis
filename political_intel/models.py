@@ -12,6 +12,10 @@ class SourceSite:
     site_name: str = ""
     category: str = ""
     notes: str = ""
+    tags: list[str] = field(default_factory=list)
+    priority: str = "medium"
+    refresh_interval_hours: int = 24
+    preferred_language: str = "en"
 
 
 @dataclass(slots=True)
@@ -23,6 +27,7 @@ class RawPage:
     fetched_at: str
     text: str
     error: str = ""
+    discovered_links: list[str] = field(default_factory=list)
 
     @classmethod
     def error_page(cls, source: SourceSite, error: str) -> "RawPage":

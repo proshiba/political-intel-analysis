@@ -31,7 +31,15 @@ def extract_record(page: RawPage) -> IntelRecord:
         summary=summary,
         signals=signals,
         keywords=keywords,
-        metadata={"status_code": page.status_code, "content_type": page.content_type, "error": page.error},
+        metadata={
+            "status_code": page.status_code,
+            "content_type": page.content_type,
+            "error": page.error,
+            "source_tags": page.source.tags,
+            "source_priority": page.source.priority,
+            "source_refresh_interval_hours": page.source.refresh_interval_hours,
+            "source_preferred_language": page.source.preferred_language,
+        },
     )
 
 
