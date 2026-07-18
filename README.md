@@ -64,3 +64,7 @@ Use this crawler only for sites you are allowed to access. The default crawler c
 ## Trial crawl notes
 
 A live trial against `data/sources.example.json` with `--max-pages-per-site 2` collected four records on July 18, 2026 UTC: two Japanese Prime Minister's Office pages, the EUR-Lex landing page, and a Congress.gov 403 anti-bot response. The Congress.gov result is preserved in outputs for auditability, but analysts should replace that sample URL with a machine-accessible feed/API or an allowed mirror before relying on U.S. legislative coverage.
+
+## Merge readiness check
+
+If a target branch is available locally, run `python scripts/check_merge_conflicts.py --base-ref <target-ref>` before opening or updating a PR. Without `--base-ref`, the script scans tracked files for unresolved conflict markers.
