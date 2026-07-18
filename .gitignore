@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Political intelligence generated artifacts
+/data/output/
+/raw_pages.jsonl
+/records.jsonl
+/country_summaries.json
+/insights.md
