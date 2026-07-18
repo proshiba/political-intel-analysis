@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "description": "Political and legal monitoring sources with analyst metadata.",
+  "defaults": {
+    "refresh_interval_hours": 24,
+    "preferred_language": "en"
+  },
+  "sources": [
+    {
+      "country": "Japan",
+      "site_name": "Prime Minister's Office",
+      "category": "government",
+      "url": "https://japan.kantei.go.jp/",
+      "notes": "Official executive updates.",
+      "tags": ["executive", "official", "policy"],
+      "priority": "high",
+      "refresh_interval_hours": 12,
+      "preferred_language": "en"
+    },
+    {
+      "country": "United States",
+      "site_name": "Congress",
+      "category": "legislature",
+      "url": "https://www.congress.gov/",
+      "notes": "Bills and legislative activity. Live crawl may return anti-bot 403; replace with an approved API/feed if needed.",
+      "tags": ["legislation", "bills", "official"],
+      "priority": "high",
+      "refresh_interval_hours": 12,
+      "preferred_language": "en"
+    },
+    {
+      "country": "European Union",
+      "site_name": "EUR-Lex",
+      "category": "law",
+      "url": "https://eur-lex.europa.eu/",
+      "notes": "EU law and treaties.",
+      "tags": ["law", "regulation", "official"],
+      "priority": "high",
+      "refresh_interval_hours": 24,
+      "preferred_language": "en"
+    }
+  ]
+}
