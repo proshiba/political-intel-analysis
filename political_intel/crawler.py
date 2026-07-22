@@ -3,7 +3,9 @@ from __future__ import annotations
 import os
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from datetime import datetime, timezone
+from typing import Protocol
 from urllib.parse import urljoin, urlparse
 from urllib.robotparser import RobotFileParser
 
@@ -16,10 +18,11 @@ from .models import RawPage, SourceSite
 DEFAULT_USER_AGENT = os.getenv("POLITICAL_INTEL_USER_AGENT", "PoliticalIntelBot/0.1")
 DEFAULT_DELAY = float(os.getenv("POLITICAL_INTEL_REQUEST_DELAY_SECONDS", "2.0"))
 DEFAULT_TIMEOUT = float(os.getenv("POLITICAL_INTEL_TIMEOUT_SECONDS", "20.0"))
+DEFAULT_BROWSER_WAIT = float(os.getenv("POLITICAL_INTEL_BROWSER_WAIT_SECONDS", "1.0"))
 
 
 class PoliticalCrawler:
-    """Polite bounded crawler for file-configured sources."""
+    """Polite bounded HTTP crawler for file-configured sources."""
 
     def __init__(self, user_agent: str = DEFAULT_USER_AGENT, delay_seconds: float = DEFAULT_DELAY, timeout_seconds: float = DEFAULT_TIMEOUT, respect_robots: bool = True) -> None:
         self.user_agent = user_agent
@@ -104,12 +107,94 @@ class PoliticalCrawler:
         return self._robots[base].can_fetch(self.user_agent, url)
 
 
+class BrowserDriver(Protocol):
+    current_url: str
+    page_source: str
+
+    def get(self, url: str) -> None: ...
+
+    def quit(self) -> None: ...
+
+
+class SeleniumPoliticalCrawler(PoliticalCrawler):
+    """Headless Chrome crawler for pages that require JavaScript rendering."""
+
+    def __init__(
+        self,
+        user_agent: str = DEFAULT_USER_AGENT,
+        delay_seconds: float = DEFAULT_DELAY,
+        timeout_seconds: float = DEFAULT_TIMEOUT,
+        respect_robots: bool = True,
+        browser_wait_seconds: float = DEFAULT_BROWSER_WAIT,
+        driver_factory: Callable[[], BrowserDriver] | None = None,
+    ) -> None:
+        super().__init__(user_agent=user_agent, delay_seconds=delay_seconds, timeout_seconds=timeout_seconds, respect_robots=respect_robots)
+        self.browser_wait_seconds = browser_wait_seconds
+        self._driver_factory = driver_factory
+        self._driver: BrowserDriver | None = None
+
+    def close(self) -> None:
+        if self._driver is not None:
+            self._driver.quit()
+            self._driver = None
+        super().close()
+
+    def fetch(self, source: SourceSite, url: str | None = None) -> RawPage:
+        target_url = url or source.url
+        if self.respect_robots and not self._can_fetch(target_url):
+            return RawPage.error_page(source, f"Blocked by robots.txt: {target_url}")
+
+        self._throttle(target_url)
+        try:
+            driver = self._get_driver()
+            driver.get(target_url)
+            if self.browser_wait_seconds > 0:
+                time.sleep(self.browser_wait_seconds)
+            html = driver.page_source
+            final_url = driver.current_url or target_url
+            return RawPage(
+                source=source,
+                final_url=final_url,
+                status_code=200,
+                content_type="text/html; rendered=selenium",
+                fetched_at=datetime.now(timezone.utc).isoformat(),
+                text=_html_to_readable_text(html)[:200_000],
+                discovered_links=_discover_same_domain_links(html, final_url),
+            )
+        except Exception as exc:
+            return RawPage.error_page(source, f"Selenium fetch failed: {exc}")
+
+    def _get_driver(self) -> BrowserDriver:
+        if self._driver is None:
+            self._driver = self._driver_factory() if self._driver_factory is not None else _create_headless_chrome_driver(self.user_agent, self.timeout_seconds)
+        return self._driver
+
+
+def _create_headless_chrome_driver(user_agent: str, timeout_seconds: float) -> BrowserDriver:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-gpu")
+    options.add_argument(f"--user-agent={user_agent}")
+    driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(timeout_seconds)
+    return driver
+
+
 def _response_text(response: httpx.Response) -> str:
     content_type = response.headers.get("content-type", "")
     if "html" not in content_type:
         return response.text[:200_000]
-    extracted = trafilatura.extract(response.text, include_links=False, include_comments=False)
-    return extracted or _html_to_text(response.text)
+    return _html_to_readable_text(response.text)
+
+
+def _html_to_readable_text(html: str) -> str:
+    extracted = trafilatura.extract(html, include_links=False, include_comments=False)
+    return extracted or _html_to_text(html)
 
 
 def _html_to_text(html: str) -> str:
