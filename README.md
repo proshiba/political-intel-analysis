@@ -15,12 +15,12 @@ pip install -r requirements.txt
 python -m political_intel.pipeline --sources data/sources.example.json --output data/output --max-pages-per-site 2
 ```
 
-The pipeline writes raw fetches, extracted records, and country-level analysis summaries under the output directory.
+The pipeline writes raw fetches, extracted records, and country-level analysis summaries under the output directory. For JavaScript-rendered portals, add `--render-javascript` to collect pages with Selenium and headless Chrome; Chrome/Chromium must be available in the runtime environment.
 
 ## Components
 
 - `political_intel.sources`: loads source URLs and related metadata from JSON configuration files.
-- `political_intel.crawler`: polite same-domain HTTP crawler with per-domain rate limiting, robots.txt checks, and link prioritization.
+- `political_intel.crawler`: polite same-domain HTTP crawler and optional Selenium/headless Chrome crawler with per-domain rate limiting, robots.txt checks, and link prioritization.
 - `political_intel.extractor`: extracts title, publication date, readable text, and political/legal signals.
 - `political_intel.analyzer`: builds country-level summaries and simple insight/risk indicators.
 - `political_intel.pipeline`: command-line orchestration.
@@ -59,7 +59,7 @@ Each object in `sources`:
 
 ## Compliance notes
 
-Use this crawler only for sites you are allowed to access. The default crawler checks robots.txt, identifies itself through a configurable user agent, and throttles requests per domain.
+Use this crawler only for sites you are allowed to access. The default HTTP crawler and optional Selenium crawler check robots.txt, identify themselves through a configurable user agent, and throttle requests per domain. Selenium output is marked with `content_type` value `text/html; rendered=selenium` for auditability.
 
 ## Trial crawl notes
 
