@@ -2,6 +2,10 @@
 
 File-configured crawler and analysis toolkit for monitoring political and legal developments across countries.
 
+## Analysis plan
+
+See [docs/analysis-plan.md](docs/analysis-plan.md) (Japanese) for the roadmap to expand this toolkit into a worldwide political/military/conflict intelligence pipeline: tiered country coverage, a common event schema with stance/intensity enrichment, monthly inter-state relations analysis, and downstream cyber-attack trend prediction.
+
 ## Quick start
 
 1. Edit `data/sources.example.json` or create your own JSON source configuration with a `sources` array.
